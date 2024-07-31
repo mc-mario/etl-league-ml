@@ -25,7 +25,6 @@ async def get_match(match_id):
         return await client.get_lol_match_v5_match(id=match_id, region='europe')
 
 
-
 RELEVANT_COLUMNS = ('side', 'jungleMinionsKilled', 'level', 'minionsKilled', 'totalGold', 'xp', 'totalDamageDoneToChampions', 'totalDamageTaken')
 
 def extract_player_match_data(match, maxFrame=15):
