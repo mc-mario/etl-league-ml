@@ -17,6 +17,7 @@ def deploy_bronze_etl():
         name="list_division_players",
         work_pool_name="default-agent-pool",
         work_queue_name="default",
+        tags=['bronze', 'seed'],
     )
     get_player_information.from_source(
         source=github_block,
@@ -25,6 +26,7 @@ def deploy_bronze_etl():
         name="get_player_information",
         work_pool_name="default-agent-pool",
         work_queue_name="default",
+        tags=['bronze'],
     )
     get_match_information.from_source(
         source=github_block,
@@ -33,6 +35,7 @@ def deploy_bronze_etl():
         name="get_match_information",
         work_pool_name="default-agent-pool",
         work_queue_name="default",
+        tags=['bronze'],
     )
     bronze_orchestrator.from_source(
         source=github_block,
@@ -41,6 +44,7 @@ def deploy_bronze_etl():
         name="bronze_orchestrator",
         work_pool_name="default-agent-pool",
         work_queue_name="default",
+        tags=['bronze', 'orchestrator'],
     )
 
 
