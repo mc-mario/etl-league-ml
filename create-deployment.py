@@ -1,16 +1,25 @@
-from prefect.deployments import Deployment
 from prefect.filesystems import GitHub
 
+from flows.bronze.list_division_players import list_division_players
 from flows.hello_world_flow import hello_world_flow
 
-# Create a deployment for the flow
 github_block = GitHub.load("github")
-deployment = Deployment.build_from_flow(
-    flow=hello_world_flow,
-    name="hello2",
-    storage=github_block,
-    entrypoint="flows/hello_world_flow.py:hello_world_flow"
-)
 
 if __name__ == "__main__":
-    deployment.apply()
+    # hello_world_flow.from_source(
+    #     source=github_block,
+    #     entrypoint="flows/hello_world_flow.py:hello_world_flow",
+    # ).deploy(
+    #     name="hello2",
+    #     work_pool_name="default-agent-pool",
+    #     work_queue_name="default",
+    # )
+
+    list_division_players.from_source(
+        source=github_block,
+        entrypoint="flows/bronze/list_division_players.py:list_division_players",
+    ).deploy(
+        name="list_division_players",
+        work_pool_name="default-agent-pool",
+        work_queue_name="default",
+    )
