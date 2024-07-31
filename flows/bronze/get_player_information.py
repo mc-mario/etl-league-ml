@@ -26,9 +26,9 @@ async def get_player_information(summoner_id: str):
 
     resp = await get_player_details(summoner_id, client_kwargs)
     with open(f'/opt/prefect/data/bronze/player/{summoner_id}.json', 'w') as f:
-        json.dump(resp, f)
+        json.dump(resp, f, indent=4)
 
     resp = await get_match_history(resp["puuid"], client_kwargs)
     with open(f'/opt/prefect/data/bronze/matches/matches_ids.json', 'w+') as f:
-        json.dump(resp, f)
+        json.dump(resp, f, indent=4)
 

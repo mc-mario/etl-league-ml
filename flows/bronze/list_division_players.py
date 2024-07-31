@@ -24,4 +24,4 @@ async def list_division_players():
 
     print(os.listdir('/opt/prefect/data/bronze'))
     with open(f'/opt/prefect/data/bronze/division/{tier}_{division}_{date.today()}.json', 'w') as f:
-        json.dump(resp, f)
+        json.dump(resp, f, indent=4)
