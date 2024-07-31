@@ -29,10 +29,10 @@ async def get_match_information(match_id):
 
     data_path = await Variable.get('data_path')
     path = data_path.value
-    with open(f'{path}/bronze/match/timeline', 'w+') as f:
+    with open(f'{path}/bronze/match/timeline/{match_id}.json', 'w+') as f:
         json.dump(timeline, f, indent=4)
 
-    with open(f'{path}/bronze/match/details', 'w+') as f:
+    with open(f'{path}/bronze/match/details/{match_id}.json', 'w+') as f:
         json.dump(details, f, indent=4)
 
 
