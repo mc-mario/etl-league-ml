@@ -9,7 +9,7 @@ from pulsefire.clients import RiotAPIClient
 
 @task
 async def get_division(tier='DIAMOND', division='I', queue='RANKED_SOLO_5x5'):
-    API_KEY = Variable.get('riot_api_key')
+    API_KEY = await Variable.get('riot_api_key')
     async with RiotAPIClient(default_headers={"X-Riot-Token": API_KEY.value}) as client:
         return await client.get_lol_league_v4_entries_by_division(tier=tier, division=division, queue=queue, region='euw1')
 
