@@ -1,8 +1,8 @@
 from prefect.filesystems import GitHub
 
-from flows.bronze import get_player_information
+from flows.bronze.get_player_information import get_player_information
 from flows.bronze.list_division_players import list_division_players
-from flows.hello_world_flow import hello_world_flow
+
 
 github_block = GitHub.load("github")
 
