@@ -1,4 +1,5 @@
 import json
+from datetime import date
 
 from prefect import task, flow
 from prefect.variables import Variable
@@ -29,6 +30,6 @@ async def get_player_information(summoner_id: str):
         json.dump(resp, f, indent=4)
 
     resp = await get_match_history(resp["puuid"], client_kwargs)
-    with open(f'/opt/prefect/data/bronze/matches/matches_ids.json', 'w+') as f:
+    with open(f'/opt/prefect/data/bronze/player/{summoner_id}_matches_{date.today()}.json', 'w+') as f:
         json.dump(resp, f, indent=4)
 
