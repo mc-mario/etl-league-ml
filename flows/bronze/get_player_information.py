@@ -5,7 +5,7 @@ from prefect.variables import Variable
 from pulsefire.clients import RiotAPIClient
 
 @task
-async def get_player_information(summoner_id, client_kwargs):
+async def get_player_details(summoner_id, client_kwargs):
     async with RiotAPIClient(**client_kwargs) as client:
         return await client.get_lol_summoner_v4_by_id(id=summoner_id, region='euw1')
 
@@ -17,14 +17,14 @@ async def get_match_history(summoner_puuid, client_kwargs):
 
 
 @flow
-async def list_division_players(summoner_id: str):
+async def get_player_information(summoner_id: str):
     API_KEY = await Variable.get('riot_api_key')
 
     client_kwargs = dict(
         default_headers={"X-Riot-Token": API_KEY.value}
     )
 
-    resp = await get_player_information(summoner_id, client_kwargs)
+    resp = await get_player_details(summoner_id, client_kwargs)
     with open(f'/opt/prefect/data/bronze/player/{summoner_id}.json', 'w') as f:
         json.dump(resp, f)
 
