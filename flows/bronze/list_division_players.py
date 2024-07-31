@@ -20,5 +20,5 @@ async def list_division_players():
     division = 'I'
     queue = 'RANKED_SOLO_5x5'
     resp = await get_division(tier=tier, division=division, queue=queue)
-    with open(f'/opt/prefect/flows/bronze/division/{tier}_{division}_{queue}_{datetime.now().timestamp()}') as f:
+    with open(f'/opt/prefect/flows/bronze/division/{tier}_{division}_{queue}_{datetime.now().timestamp()}', 'w') as f:
         json.dump(resp, f)
