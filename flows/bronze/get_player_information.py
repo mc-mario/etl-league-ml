@@ -27,7 +27,8 @@ async def get_player_information(summoner_id: str):
     player_info = await get_player_details(summoner_id, client_kwargs)
     match_history = await get_match_history(player_info["puuid"], client_kwargs)
 
-    path = await Variable.get('data_path').value
+    data_path = await Variable.get('data_path')
+    path = data_path.value
     with open(f'{path}/bronze/player/{summoner_id}.json', 'w') as f:
         json.dump(player_info, f, indent=4)
 
