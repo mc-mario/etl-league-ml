@@ -1,17 +1,16 @@
 from prefect.deployments import Deployment
-from prefect_github import GitHubCredentials
-from prefect_github.repository import GitHubRepository
+from prefect.filesystems import GitHub
+from prefect.infrastructure import Process
 
 from hello_world_flow import hello_world_flow
 
-github_repository_block = GitHubRepository.load("etl-league-ml")
-
-# Create a deployment for the hello_world_flow
+# Create a deployment for the flow
+github_block = GitHub.load("github")  # Replace with your GitHub block name or ID
 deployment = Deployment.build_from_flow(
     flow=hello_world_flow,
     name="hello-world-deployment",
-    parameters={"filename": "hello_world.txt"},
-    storage=github_repository_block,
+    infrastructure=Process(),
+    storage=github_block
 )
 
 if __name__ == "__main__":
