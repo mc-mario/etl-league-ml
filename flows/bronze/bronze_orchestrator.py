@@ -5,7 +5,7 @@ from prefect.deployments import run_deployment
 @flow
 async def bronze_orchestrator():
     deployment = await get_client().read_deployment_by_name(
-        name='get_match_information/get_match_information'
+        name='get-match-information/get_match_information'
     )
 
     match_id = 'EUW1_6994259938'
