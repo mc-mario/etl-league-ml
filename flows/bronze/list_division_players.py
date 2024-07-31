@@ -23,5 +23,5 @@ async def list_division_players():
     resp = await get_division(tier=tier, division=division, queue=queue)
 
     print(os.listdir('/opt/prefect/data/bronze'))
-    with open(f'/opt/prefect/data/bronze/division/{tier}_{division}_{queue}_{date.today()}.json', 'w') as f:
+    with open(f'/opt/prefect/data/bronze/division/{tier}_{division}_{date.today()}.json', 'w') as f:
         json.dump(resp, f)
