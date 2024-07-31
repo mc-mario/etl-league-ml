@@ -3,11 +3,14 @@ from prefect.deployments import run_deployment
 
 
 @flow
-async def bronze_orchestrator():
+async def orchestrate_daily_division_retrieval():
     deployment = await get_client().read_deployment_by_name(
-        name='get-match-information/get_match_information'
+        name='list-division-players/list_division_players'
     )
 
-    match_id = 'EUW1_6994259938'
-    await run_deployment(deployment.id, parameters={'match_id': match_id})
+    for divisions in ['I', 'II', 'III', 'IV']:
+        parameters = dict(
+            tier='DIAMOND', division='I', queue='RANKED_SOLO_5x5'
+        )
+        await run_deployment(deployment.id, parameters=parameters)
 
