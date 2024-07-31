@@ -17,6 +17,6 @@ async def get_division(tier, division, queue):
 async def list_division_players(tier = 'DIAMOND', division = 'I', queue = 'RANKED_SOLO_5x5'):
     resp = await get_division(tier=tier, division=division, queue=queue)
 
-    path = await Variable.get('data_path')
+    path = await Variable.get('data_path').value
     with open(f'{path}/bronze/division/{tier}_{division}_{date.today()}.json', 'w') as f:
         json.dump(resp, f, indent=4)

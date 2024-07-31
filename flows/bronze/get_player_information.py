@@ -24,12 +24,13 @@ async def get_player_information(summoner_id: str):
     client_kwargs = dict(
         default_headers={"X-Riot-Token": API_KEY.value}
     )
+    player_info = await get_player_details(summoner_id, client_kwargs)
+    match_history = await get_match_history(player_info["puuid"], client_kwargs)
 
-    resp = await get_player_details(summoner_id, client_kwargs)
-    with open(f'/opt/prefect/data/bronze/player/{summoner_id}.json', 'w') as f:
-        json.dump(resp, f, indent=4)
+    path = await Variable.get('data_path').value
+    with open(f'{path}/bronze/player/{summoner_id}.json', 'w') as f:
+        json.dump(player_info, f, indent=4)
 
-    resp = await get_match_history(resp["puuid"], client_kwargs)
-    with open(f'/opt/prefect/data/bronze/player/{summoner_id}_matches_{date.today()}.json', 'w+') as f:
-        json.dump(resp, f, indent=4)
+    with open(f'{path}/bronze/player/{summoner_id}_matches_{date.today()}.json', 'w+') as f:
+        json.dump(match_history, f, indent=4)
 
