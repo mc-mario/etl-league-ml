@@ -5,7 +5,7 @@ from prefect import flow, task
 @task
 def say_hello():
     print("Hello, World!")
-    with open('helloworld.txt', "w") as f:
+    with open('/opt/prefect/flows/helloworld.txt', "w") as f:
         f.write("Hello, World!")
 
 @flow
