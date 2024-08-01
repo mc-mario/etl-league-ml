@@ -1,7 +1,7 @@
 from prefect.client.schemas.schedules import CronSchedule
 from prefect.filesystems import GitHub
 
-from flows.bronze.bronze_orchestrator import orchestrate_daily_division_retrieval
+from flows.bronze.bronze_orchestrator import orchestrate_daily_division_retrieval, update_bronze_etl_database
 from flows.bronze.get_match_information import get_match_information
 from flows.bronze.get_player_information import get_player_information
 from flows.bronze.list_division_players import list_division_players
@@ -47,6 +47,16 @@ def deploy_bronze_etl():
         work_queue_name="default",
         tags=['bronze', 'orchestrator'],
         schedule=(CronSchedule(cron="0 3 * * *", timezone="Europe/Madrid")),
+    )
+    update_bronze_etl_database.from_source(
+        source=github_block,
+        entrypoint="flows/bronze/bronze_orchestrator.py:update_bronze_etl_database",
+    ).deploy(
+        name="update_bronze_etl_database",
+        work_pool_name="default-agent-pool",
+        work_queue_name="default",
+        tags=['bronze'],
+        schedule=(CronSchedule(cron="0 6 * * *", timezone="Europe/Madrid")),
     )
 
 

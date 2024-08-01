@@ -1,16 +1,49 @@
 import json
 import os
-from datetime import date
+from datetime import date, datetime
 
 from prefect import get_client, flow, task
 from prefect.deployments import run_deployment
 from prefect.variables import Variable
 
+from tinydb import TinyDB, Query
 
 @flow
 async def orchestrate_daily_division_retrieval():
     await list_division_today()
     await fetch_user_data()
+    await update_bronze_etl_database()
+
+@flow
+async def update_bronze_etl_database():
+    data_path = await Variable.get('data_path')
+    db_path = f"{data_path}/etl_status.json"
+
+    db = TinyDB(db_path)
+    match_table = db.table('match_ids')
+    Match = Query()
+
+    match_files = filter(
+        lambda fi: fi.rstrip('.json').endswith(f'matches_{date.today()}'),
+        os.listdir(f"{data_path}/bronze/players/")
+    )
+
+    for match_file in match_files:
+        with open(f'{data_path}/bronze/players/{match_file}', 'r') as f:
+            data = json.load(f)
+            for match_id in data:
+                if match_table.contains(Match.match_id == match_id):
+                    continue
+
+                match_table.insert({
+                    'match_id': data['match_id'],
+                    'insert_date': datetime.now(),
+                    'bronze': False,
+                    'silver': False,
+                    'gold': False,
+                })
+
+
 
 
 @task
