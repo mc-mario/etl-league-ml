@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 
 
 async def db_create_session():
-    data_path = Variable.get('data_path')
+    data_path = await Variable.get('data_path')
     db_path = f"{data_path.value}/etl_status.db"
     engine = create_engine(f'sqlite:///{db_path}')
     Session = sessionmaker(bind=engine)
