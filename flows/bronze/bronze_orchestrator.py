@@ -31,9 +31,10 @@ async def fetch_user_data():
         with open(f'{division_path}/{file}', 'r') as f:
             data = json.load(f)
             for summoner in data:
-                run_deployment(
+                await run_deployment(
                     get_player_info_deploy.id,
-                    {'summoner_id': summoner.get('summonerId')}
+                    parameters={'summoner_id': summoner.get('summonerId')},
+                    flow_run_name=f'run_{date.today()}_{summoner.get("name")}',
                 )
 
 
