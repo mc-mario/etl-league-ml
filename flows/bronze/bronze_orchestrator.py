@@ -15,15 +15,18 @@ async def orchestrate_daily_division_retrieval():
 
 @task
 async def fetch_user_data():
-    data_path = await Variable.get('data_path')
-    path = data_path.value
-
-    division_path = os.listdir(f'{path}/bronze/division/')
-    today_files = filter(lambda f: f.rstrip('.json').endswith(f'{date.today()}'), division_path)
-
     get_player_info_deploy = await get_client().read_deployment_by_name(
         name='get-player-information/get_player_information'
     )
+
+    data_path = await Variable.get('data_path')
+    division_path = f'{data_path.value}/bronze/division/'
+
+    today_files = filter(
+        lambda fi: fi.rstrip('.json').endswith(f'{date.today()}'),
+        os.listdir(division_path)
+    )
+
     for file in today_files:
         with open(f'{division_path}/{file}', 'r') as f:
             data = json.load(f)
