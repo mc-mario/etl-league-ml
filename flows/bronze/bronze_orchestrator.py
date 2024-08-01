@@ -18,14 +18,14 @@ async def fetch_user_data():
     data_path = await Variable.get('data_path')
     path = data_path.value
 
-    division_files = os.listdir(f'{path}/bronze/division/')
-    today_files = filter(lambda f: f.rstrip('.json').endswith(f'{date.today()}'), division_files)
+    division_path = os.listdir(f'{path}/bronze/division/')
+    today_files = filter(lambda f: f.rstrip('.json').endswith(f'{date.today()}'), division_path)
 
     get_player_info_deploy = await get_client().read_deployment_by_name(
         name='get-player-information/get_player_information'
     )
     for file in today_files:
-        with open(file, 'r') as f:
+        with open(f'{division_path}/{file}', 'r') as f:
             data = json.load(f)
             run_deployment(
                 get_player_info_deploy.id,
