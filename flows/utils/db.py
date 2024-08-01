@@ -1,3 +1,5 @@
+import os
+
 from prefect.variables import Variable
 from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime, func
 from sqlalchemy.orm import sessionmaker, declarative_base
@@ -9,7 +11,10 @@ async def db_create_session():
     engine = create_engine(f'sqlite:///{db_path}')
     Session = sessionmaker(bind=engine)
     session = Session()
-    Base.metadata.create_all(engine)
+
+    if not os.path.exists(db_path):
+        Base.metadata.create_all(engine)
+
     return session
 
 Base = declarative_base()

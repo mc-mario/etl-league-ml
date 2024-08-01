@@ -35,10 +35,10 @@ async def get_pending_match():
     session = await db_create_session()
     match_id = get_match_id(session)
 
+    print('Match ID', match_id)
+
     if match_id is None:
         return
-
-    print(match_id)
 
     get_match_information_deploy = await get_client().read_deployment_by_name(
         name='get-match-information/get_match_information'
