@@ -35,8 +35,8 @@ def add_match_id(session, match_id, bronze=False, silver=False, gold=False):
     session.add(new_match)
     session.commit()
 
-def get_match_id(session, match_id):
-    elem = session.query(Match).filter_by(match_id=match_id, bronze=False).one_or_none()
+def get_match_id(session):
+    elem = session.query(Match).filter_by(bronze=False).one_or_none()
     if elem is None:
         return None
 
