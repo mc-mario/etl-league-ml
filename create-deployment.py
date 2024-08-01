@@ -64,7 +64,7 @@ def deploy_bronze_etl():
 
     get_pending_match.from_source(
         source=github_block,
-        entrypoint="flows/bronze/get_pending_match.py:get_pending_match",
+        entrypoint="flows/bronze/bronze_orchestrator.py:get_pending_match",
     ).deploy(
         name="get_pending_match",
         work_pool_name="default-agent-pool",
