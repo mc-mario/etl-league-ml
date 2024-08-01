@@ -70,7 +70,7 @@ def deploy_bronze_etl():
         work_pool_name="default-agent-pool",
         work_queue_name="default",
         tags=['bronze'],
-        schedule=IntervalSchedule(interval=timedelta(seconds=10), timezone="Europe/Madrid")),
+        schedule=IntervalSchedule(interval=timedelta(seconds=10), timezone="Europe/Madrid"),
     )
 
 
