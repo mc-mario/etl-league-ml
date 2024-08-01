@@ -30,10 +30,11 @@ async def fetch_user_data():
     for file in today_files:
         with open(f'{division_path}/{file}', 'r') as f:
             data = json.load(f)
-            run_deployment(
-                get_player_info_deploy.id,
-                {'summoner_id': data.get('summonerId')}
-            )
+            for summoner in data:
+                run_deployment(
+                    get_player_info_deploy.id,
+                    {'summoner_id': summoner.get('summonerId')}
+                )
 
 
 @task
