@@ -30,7 +30,7 @@ class Match(Base):
 
 
 def is_match_id_processed(session, match_id):
-    return session.query(Match).filter_by(match_id=match_id).one_or_none() is None
+    return session.query(Match).filter_by(match_id=match_id).one_or_none() is not None
 
 
 def add_match_id(session, match_id, bronze=False, silver=False, gold=False):
