@@ -17,7 +17,7 @@ async def orchestrate_daily_division_retrieval():
 @flow
 async def update_bronze_etl_database():
     data_path = await Variable.get('data_path')
-    db_path = f"{data_path}/etl_status.json"
+    db_path = f"{data_path.value}/etl_status.json"
 
     db = TinyDB(db_path)
     match_table = db.table('match_ids')
@@ -25,11 +25,11 @@ async def update_bronze_etl_database():
 
     match_files = filter(
         lambda fi: fi.rstrip('.json').endswith(f'matches_{date.today()}'),
-        os.listdir(f"{data_path}/bronze/players/")
+        os.listdir(f"{data_path.value}/bronze/players/")
     )
 
     for match_file in match_files:
-        with open(f'{data_path}/bronze/players/{match_file}', 'r') as f:
+        with open(f'{data_path.value}/bronze/players/{match_file}', 'r') as f:
             data = json.load(f)
             for match_id in data:
                 if match_table.contains(Match.match_id == match_id):
