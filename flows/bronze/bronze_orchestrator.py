@@ -8,6 +8,8 @@ from prefect.variables import Variable
 
 from tinydb import TinyDB, Query
 
+from flows.utils.db import engine, Base, is_match_id_processed, add_match_id
+
 STAGE = 'bronze'
 ENTITY = 'player'
 
@@ -17,14 +19,19 @@ async def orchestrate_daily_division_retrieval():
     await fetch_user_data()
     await update_bronze_etl_database()
 
+
+@task
+async def insert_match_id(path):
+    with open(path, 'r') as f:
+        data = json.load(f)
+        for match_id in data:
+            if is_match_id_processed(match_id):
+                continue
+            add_match_id(match_id)
+
 @flow
 async def update_bronze_etl_database():
     data_path = await Variable.get('data_path')
-    db_path = f"{data_path.value}/etl_status.json"
-
-    db = TinyDB(db_path)
-    match_table = db.table('match_ids')
-    Match = Query()
 
     match_files = filter(
         lambda fi: fi.rstrip('.json').endswith(f'matches_{date.today()}'),
@@ -32,21 +39,8 @@ async def update_bronze_etl_database():
     )
 
     for match_file in match_files:
-        with open(f'{data_path.value}/{STAGE}/{ENTITY}/{match_file}', 'r') as f:
-            data = json.load(f)
-            for match_id in data:
-                if match_table.contains(Match.match_id == match_id):
-                    continue
-
-                match_table.insert({
-                    'match_id': match_id,
-                    'insert_date': str(datetime.now()),
-                    'bronze': False,
-                    'silver': False,
-                    'gold': False,
-                })
-
-
+        path = f'{data_path.value}/{STAGE}/{ENTITY}/{match_file}'
+        insert_match_id(path)
 
 
 @task
