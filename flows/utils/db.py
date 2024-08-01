@@ -3,13 +3,16 @@ from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 
-data_path = Variable.get('data_path')
-db_path = f"{data_path.value}/etl_status.db"
-engine = create_engine(f'sqlite:///{db_path}')
-Session = sessionmaker(bind=engine)
-session = Session()
+async def db_create_session():
+    data_path = Variable.get('data_path')
+    db_path = f"{data_path.value}/etl_status.db"
+    engine = create_engine(f'sqlite:///{db_path}')
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    Base.metadata.create_all(engine)
+    return session
+
 Base = declarative_base()
-Base.metadata.create_all(engine)
 
 class Match(Base):
     __tablename__ = 'matches'
@@ -21,11 +24,11 @@ class Match(Base):
     created_on = Column(DateTime, default=func.now())
 
 
-def is_match_id_processed(match_id):
+def is_match_id_processed(session, match_id):
     return session.query(Match).filter_by(match_id=match_id).one_or_none() is None
 
 
-def add_match_id(match_id, bronze=False, silver=False, gold=False):
+def add_match_id(session, match_id, bronze=False, silver=False, gold=False):
     if is_match_id_processed(match_id):
         return
     new_match = Match(match_id=match_id, bronze=bronze, silver=silver, gold=gold)

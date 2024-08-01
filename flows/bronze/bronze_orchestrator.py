@@ -1,14 +1,12 @@
 import json
 import os
-from datetime import date, datetime
+from datetime import date
 
 from prefect import get_client, flow, task
 from prefect.deployments import run_deployment
 from prefect.variables import Variable
 
-from tinydb import TinyDB, Query
-
-from flows.utils.db import engine, Base, is_match_id_processed, add_match_id
+from flows.utils.db import is_match_id_processed, add_match_id, db_create_session
 
 STAGE = 'bronze'
 ENTITY = 'player'
@@ -22,12 +20,14 @@ async def orchestrate_daily_division_retrieval():
 
 @task
 async def insert_match_id(path):
+    session = await db_create_session()
+
     with open(path, 'r') as f:
         data = json.load(f)
         for match_id in data:
-            if is_match_id_processed(match_id):
+            if is_match_id_processed(session, match_id):
                 continue
-            add_match_id(match_id)
+            add_match_id(session, match_id)
 
 @flow
 async def update_bronze_etl_database():
@@ -37,10 +37,9 @@ async def update_bronze_etl_database():
         lambda fi: fi.rstrip('.json').endswith(f'matches_{date.today()}'),
         os.listdir(f"{data_path.value}/{STAGE}/{ENTITY}/")
     )
-
     for match_file in match_files:
         path = f'{data_path.value}/{STAGE}/{ENTITY}/{match_file}'
-        insert_match_id(path)
+        await insert_match_id(path)
 
 
 @task
