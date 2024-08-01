@@ -40,7 +40,7 @@ async def update_bronze_etl_database():
 
                 match_table.insert({
                     'match_id': match_id,
-                    'insert_date': datetime.now(),
+                    'insert_date': str(datetime.now()),
                     'bronze': False,
                     'silver': False,
                     'gold': False,
