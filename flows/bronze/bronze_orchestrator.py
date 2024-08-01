@@ -34,7 +34,7 @@ async def fetch_user_data():
                 await run_deployment(
                     get_player_info_deploy.id,
                     parameters={'summoner_id': summoner.get('summonerId')},
-                    flow_run_name=f'run_{date.today()}_{summoner.get("name")}',
+                    flow_run_name=f'run_{date.today()}_{summoner.get("summonerId")}',
                 )
 
 
