@@ -34,7 +34,7 @@ def is_match_id_processed(session, match_id):
 
 
 def add_match_id(session, match_id, bronze=False, silver=False, gold=False):
-    if is_match_id_processed(match_id):
+    if is_match_id_processed(session, match_id):
         return
     new_match = Match(match_id=match_id, bronze=bronze, silver=silver, gold=gold)
     session.add(new_match)
