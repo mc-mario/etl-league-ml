@@ -8,6 +8,9 @@ from prefect.variables import Variable
 
 from tinydb import TinyDB, Query
 
+STAGE = 'bronze'
+ENTITY = 'player'
+
 @flow
 async def orchestrate_daily_division_retrieval():
     await list_division_today()
@@ -25,11 +28,11 @@ async def update_bronze_etl_database():
 
     match_files = filter(
         lambda fi: fi.rstrip('.json').endswith(f'matches_{date.today()}'),
-        os.listdir(f"{data_path.value}/bronze/players/")
+        os.listdir(f"{data_path.value}/{STAGE}/{ENTITY}/")
     )
 
     for match_file in match_files:
-        with open(f'{data_path.value}/bronze/players/{match_file}', 'r') as f:
+        with open(f'{data_path.value}/{STAGE}/{ENTITY}/{match_file}', 'r') as f:
             data = json.load(f)
             for match_id in data:
                 if match_table.contains(Match.match_id == match_id):
@@ -53,7 +56,7 @@ async def fetch_user_data():
     )
 
     data_path = await Variable.get('data_path')
-    division_path = f'{data_path.value}/bronze/division/'
+    division_path = f'{data_path.value}/{STAGE}/division/'
 
     today_files = filter(
         lambda fi: fi.rstrip('.json').endswith(f'{date.today()}'),
