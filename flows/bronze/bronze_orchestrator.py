@@ -6,7 +6,7 @@ from prefect import get_client, flow, task
 from prefect.deployments import run_deployment
 from prefect.variables import Variable
 
-from flows.utils.db import is_match_id_processed, add_match_id, db_create_session
+from flows.utils.db import is_match_id_processed, add_match_id, db_create_session, get_match_id
 
 STAGE = 'bronze'
 ENTITY = 'player'
@@ -17,17 +17,6 @@ async def orchestrate_daily_division_retrieval():
     await fetch_user_data()
     await update_bronze_etl_database()
 
-
-@task
-async def insert_match_id(path):
-    session = await db_create_session()
-
-    with open(path, 'r') as f:
-        data = json.load(f)
-        for match_id in data:
-            if is_match_id_processed(session, match_id):
-                continue
-            add_match_id(session, match_id)
 
 @flow
 async def update_bronze_etl_database():
@@ -41,6 +30,34 @@ async def update_bronze_etl_database():
         path = f'{data_path.value}/{STAGE}/{ENTITY}/{match_file}'
         await insert_match_id(path)
 
+@flow
+async def get_pending_match():
+    session = await db_create_session()
+    match_id = get_match_id(session)
+
+    if match_id is None:
+        return
+
+    get_match_information_deploy = await get_client().read_deployment_by_name(
+        name='get-match-information/get_match_information'
+    )
+
+    await run_deployment(
+        get_match_information_deploy.id,
+        parameters={'match_id': match_id}
+    )
+
+
+@task
+async def insert_match_id(path):
+    session = await db_create_session()
+
+    with open(path, 'r') as f:
+        data = json.load(f)
+        for match_id in data:
+            if is_match_id_processed(session, match_id):
+                continue
+            add_match_id(session, match_id)
 
 @task
 async def fetch_user_data():
