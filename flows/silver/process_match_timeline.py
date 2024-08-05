@@ -23,12 +23,25 @@ def process_frames(timeline_path):
 
                 match ev['type']:
                     case 'CHAMPION_KILL':
-                        data = {'assists': ev.get('assistingParticipantIds', []), 'killer': ev['killerId']}
+                        data = {'type': ev.get('type'),
+                                'assists': ev.get('assistingParticipantIds', []),
+                                'killer': ev['killerId'],
+                                'victim': ev['victimId'],
+                                'team_id': 100 if ev['killerId'] <= (TEAM_SIZE / 2) else 200},
                     case 'ELITE_MONSTER_KILL':
-                        data = {'monster': ev.get('monsterType'), 'team_id': ev['killerTeamId']}
+                        data = {'type': ev.get('type'),
+                                #'monster': ev.get('monsterType'),
+                                'killer': ev['killerId'],
+                                'assists': ev.get('assistingParticipantIds', []),
+                                'team_id': ev['killerTeamId'],
+                                'objective': ev.get('monsterType')}
                     case 'BUILDING_KILL':
-                        data = {'building': ' '.join([ev['buildingType'], ev.get('towerType', '')]), 'lane': ev['laneType'],
-                                'team_id': ev['teamId']}
+                        data = {'type': ev.get('type'),
+                                'killer': ev.get('killerId'),
+                                'assists': ev.get('assistingParticipantIds', []),
+                                'team_id': ev['teamId'],
+                                'objective': ' '.join([ev['buildingType'], ev.get('towerType', ''), ev['laneType']]),
+                                }
                 parsed_events.append(data)
 
         return parsed_events
@@ -46,5 +59,5 @@ def process_match_timeline(match_id):
 
 
 if __name__ == '__main__':
-    match_id = 'EUW_0123'
+    match_id = 'EUW1_6353764274'
     process_match_timeline(match_id)
