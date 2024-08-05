@@ -9,6 +9,7 @@ from prefect.variables import Variable
 BRONZE = 'bronze'
 SILVER = 'silver'
 ENTITY = 'match/timeline'
+TEAM_SIZE = 10
 
 @task
 def process_frames(timeline_path):
