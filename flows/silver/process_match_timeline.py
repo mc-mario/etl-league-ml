@@ -1,17 +1,21 @@
 import json
-import os
 
 import pandas as pd
-from prefect import task
-from prefect.cli import flow
+from prefect import flow
 from prefect.variables import Variable
 
 BRONZE = 'bronze'
 SILVER = 'silver'
 ENTITY = 'match/timeline'
+
 TEAM_SIZE = 10
 
-@task
+PROCESS_EVENTS = {
+    'CHAMPION_KILL',
+    'ELITE_MONSTER_KILL',
+    'BUILDING_KILL',
+}
+# @task
 def process_frames(timeline_path):
     with open(timeline_path) as f:
         timeline = json.load(f)
@@ -19,31 +23,37 @@ def process_frames(timeline_path):
         for frame in timeline['info']['frames']:
             events = frame['events']
             for ev in events:
-                if ev['type'] not in ('CHAMPION_KILL', 'ELITE_MONSTER_KILL', 'BUILDING_KILL', 'CHAMPION_SPECIAL_KILL'):
+                if ev['type'] not in PROCESS_EVENTS:
                     continue
+
+                data = {
+                    'type': ev.get('type'),
+                    'principal': ev.get('killerId'),
+                    'assists': ev.get('assistingParticipantIds', []),
+                }
 
                 match ev['type']:
                     case 'CHAMPION_KILL':
-                        data = {'type': ev.get('type'),
-                                'assists': ev.get('assistingParticipantIds', []),
-                                'killer': ev['killerId'],
-                                'victim': ev['victimId'],
-                                'team_id': 100 if ev['killerId'] <= (TEAM_SIZE / 2) else 200},
+                        parsed_events.append({
+                            'team_id': 100 if (TEAM_SIZE / 2) >= ev['killerId'] else 200,
+                            **data,
+                            'objective': ev['victimId'],
+                        })
                     case 'ELITE_MONSTER_KILL':
-                        data = {'type': ev.get('type'),
-                                #'monster': ev.get('monsterType'),
-                                'killer': ev['killerId'],
-                                'assists': ev.get('assistingParticipantIds', []),
-                                'team_id': ev['killerTeamId'],
-                                'objective': ev.get('monsterType')}
+                        parsed_events.append({
+                            'team_id': ev['killerTeamId'],
+                            **data,
+                            'objective': ev['monsterType'],
+                        })
                     case 'BUILDING_KILL':
-                        data = {'type': ev.get('type'),
-                                'killer': ev.get('killerId'),
-                                'assists': ev.get('assistingParticipantIds', []),
-                                'team_id': ev['teamId'],
-                                'objective': ' '.join([ev['buildingType'], ev.get('towerType', ''), ev['laneType']]),
-                                }
-                parsed_events.append(data)
+                        parsed_events.append({
+                            'team_id': ev['teamId'],
+                            **data,
+                            'objective': ' '.join([ev['laneType'], ev['buildingType']]),
+                        })
+                    case _:
+                        print('Not able to process event type', ev['type'])
+
 
         return parsed_events
 
@@ -51,14 +61,27 @@ def process_frames(timeline_path):
 @flow
 def process_match_timeline(match_id):
     data_path = Variable.get('data_path')
-
+    data_path = data_path.value
     bronze_path = f'{data_path}/{BRONZE}/{ENTITY}/{match_id}.json'
     silver_path = f'{data_path}/{SILVER}/{ENTITY}/{match_id}.parquet'
 
     events = process_frames(bronze_path)
-    pd.DataFrame(events).to_parquet(silver_path)
 
+    df = pd.DataFrame(events)
+    df = df.dropna(axis=0)
+    df.to_parquet(silver_path)
+
+
+def process_match_timeline_local(match_id):
+    data_path = '../../'
+    bronze_path = f'{data_path}/{BRONZE}/{ENTITY}/{match_id}.json'
+
+    events = process_frames(bronze_path)
+
+    df = pd.DataFrame(events)
+    df = df.dropna(axis=0)
+    return df
 
 if __name__ == '__main__':
     match_id = 'EUW1_6353764274'
-    process_match_timeline(match_id)
+    df = process_match_timeline_local(match_id)
