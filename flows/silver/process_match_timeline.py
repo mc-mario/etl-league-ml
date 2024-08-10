@@ -15,47 +15,75 @@ PROCESS_EVENTS = {
     'ELITE_MONSTER_KILL',
     'BUILDING_KILL',
 }
+
+RELEVANT_COLUMNS = (
+    'team_id',
+    'totalGold',
+    'jungleMinionsKilled',
+    'minionsKilled',
+    'xp',
+    'level',
+    'totalDamageDone',
+    'totalDamageDoneToChampions',
+    'totalDamageTaken',
+)
+
 # @task
-def process_frames(timeline_path):
-    with open(timeline_path) as f:
-        timeline = json.load(f)
-        parsed_events = []
-        for frame in timeline['info']['frames']:
-            events = frame['events']
-            for ev in events:
-                if ev['type'] not in PROCESS_EVENTS:
-                    continue
+def process_frames(timeline):
+    parsed_events = []
+    for frame in timeline['info']['frames']:
+        events = frame['events']
+        for ev in events:
+            if ev['type'] not in PROCESS_EVENTS:
+                continue
 
-                data = {
-                    'type': ev.get('type'),
-                    'principal': ev.get('killerId'),
-                    'assists': ev.get('assistingParticipantIds', []),
-                }
+            data = {
+                'type': ev.get('type'),
+                'principal': ev.get('killerId'),
+                'assists': ev.get('assistingParticipantIds', []),
+            }
 
-                match ev['type']:
-                    case 'CHAMPION_KILL':
-                        parsed_events.append({
-                            'team_id': 100 if (TEAM_SIZE / 2) >= ev['killerId'] else 200,
-                            **data,
-                            'objective': ev['victimId'],
-                        })
-                    case 'ELITE_MONSTER_KILL':
-                        parsed_events.append({
-                            'team_id': ev['killerTeamId'],
-                            **data,
-                            'objective': ev['monsterType'],
-                        })
-                    case 'BUILDING_KILL':
-                        parsed_events.append({
-                            'team_id': ev['teamId'],
-                            **data,
-                            'objective': ' '.join([ev['laneType'], ev['buildingType']]),
-                        })
-                    case _:
-                        print('Not able to process event type', ev['type'])
+            match ev['type']:
+                case 'CHAMPION_KILL':
+                    parsed_events.append({
+                        'team_id': 100 if (TEAM_SIZE / 2) >= ev['killerId'] else 200,
+                        **data,
+                        'objective': ev['victimId'],
+                    })
+                case 'ELITE_MONSTER_KILL':
+                    parsed_events.append({
+                        'team_id': ev['killerTeamId'],
+                        **data,
+                        'objective': ev['monsterType'],
+                    })
+                case 'BUILDING_KILL':
+                    parsed_events.append({
+                        'team_id': ev['teamId'],
+                        **data,
+                        'objective': ' '.join([ev['laneType'], ev['buildingType']]),
+                    })
+                case _:
+                    print('Not able to process event type', ev['type'])
 
 
-        return parsed_events
+    return parsed_events
+
+def extract_player_match_data(match, maxFrame=15):
+    df = pd.DataFrame.from_dict(match['info']['frames'][maxFrame]['participantFrames'], orient='index')
+    RELEVANT_DAMAGE_FIELDS = (
+        'totalDamageDone',
+        'totalDamageDoneToChampions',
+        'totalDamageTaken',
+    )
+
+    # Apply the function and expand the result into new columns
+    for field in RELEVANT_DAMAGE_FIELDS:
+        df[field] = df['damageStats'].apply(lambda x: x.get(field, None))
+    #df = df.drop(columns=['damageStats']).reset_index().join(pd.json_normalize(df['damageStats'])).set_index('index')
+    #df = df.join(pd.json_normalize(df['damageStats']))
+    df['team_id'] = [100 if (TEAM_SIZE / 2) >= int(idx) else 200 for idx in df.index]
+
+    return df[[*RELEVANT_COLUMNS]]
 
 
 @flow
@@ -65,7 +93,11 @@ def process_match_timeline(match_id):
     bronze_path = f'{data_path}/{BRONZE}/{ENTITY}/{match_id}.json'
     silver_path = f'{data_path}/{SILVER}/{ENTITY}/{match_id}.parquet'
 
-    events = process_frames(bronze_path)
+    with open(bronze_path) as f:
+        timeline = json.load(f)
+
+    events = process_frames(timeline)
+    player_stats = extract_player_match_data(timeline, maxFrame=15)
 
     df = pd.DataFrame(events)
     df = df.dropna(axis=0)
@@ -76,12 +108,16 @@ def process_match_timeline_local(match_id):
     data_path = '../../'
     bronze_path = f'{data_path}/{BRONZE}/{ENTITY}/{match_id}.json'
 
-    events = process_frames(bronze_path)
+    with open(bronze_path) as f:
+        timeline = json.load(f)
+
+    events = process_frames(timeline)
+    player_stats = extract_player_match_data(timeline, maxFrame=15)
 
     df = pd.DataFrame(events)
     df = df.dropna(axis=0)
-    return df
+    return df, player_stats
 
 if __name__ == '__main__':
-    match_id = 'EUW1_6353764274'
-    df = process_match_timeline_local(match_id)
+    match_id = 'EUW1_7023586604'
+    df, player_stats = process_match_timeline_local(match_id)
