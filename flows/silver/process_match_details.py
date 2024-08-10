@@ -47,6 +47,9 @@ async def process_match_details(match_id):
     if metadata.get('gameMode') != 'CLASSIC' or metadata.get('gameType') != 'RANKED':
         return False
 
+    with open(silver_path) as f:
+        json.dump(metadata, f)
+
     return True
 
 

@@ -7,7 +7,7 @@ from prefect.variables import Variable
 BRONZE = 'bronze'
 SILVER = 'silver'
 ENTITY_TIMELINE = 'match/timeline'
-ENTITY_STATS = 'match/details'
+ENTITY_STATS = 'match/stats'
 
 TEAM_SIZE = 10
 
