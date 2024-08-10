@@ -45,8 +45,12 @@ def get_match_id(session, filters={'bronze': False}):
     if elem is None:
         return None
 
-    elem.bronze = True
+    return elem.match_id
+
+def complete_step(session, match_id, attr, value):
+    elem = session.query(Match).filter_by(match_id=match_id).first()
+
+    setattr(elem, attr, value)
+
     session.add(elem)
     session.commit()
-
-    return elem.match_id

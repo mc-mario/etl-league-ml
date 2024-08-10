@@ -1,7 +1,7 @@
 from prefect import flow, get_client
 from prefect.deployments import run_deployment
 
-from flows.utils.db import get_match_id, db_create_session
+from flows.utils.db import get_match_id, db_create_session, complete_step
 
 
 @flow
@@ -23,6 +23,7 @@ async def orchestrate_silver_etl(match_id=None, frame=15):
     print(is_processable)
 
     if not is_processable:
+        complete_step(session, match_id, 'silver', True)
         return
 
     process_match_timeline = await get_client().read_deployment_by_name(
