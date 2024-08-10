@@ -35,4 +35,3 @@ async def get_match_information(match_id):
     with open(f'{path}/bronze/match/details/{match_id}.json', 'w+') as f:
         json.dump(details, f, indent=4)
 
-

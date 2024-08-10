@@ -6,7 +6,7 @@ from prefect import get_client, flow, task
 from prefect.deployments import run_deployment
 from prefect.variables import Variable
 
-from flows.utils.db import is_match_id_processed, add_match_id, db_create_session, get_match_id
+from flows.utils.db import is_match_id_processed, add_match_id, db_create_session, get_match_id, complete_step
 
 STAGE = 'bronze'
 ENTITY = 'player'
@@ -48,6 +48,8 @@ async def get_pending_match():
         get_match_information_deploy.id,
         parameters={'match_id': match_id}
     )
+
+    complete_step(session, match_id, 'bronze', True)
 
 
 @task
