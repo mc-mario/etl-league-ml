@@ -6,7 +6,8 @@ from prefect.variables import Variable
 
 BRONZE = 'bronze'
 SILVER = 'silver'
-ENTITY = 'match/timeline'
+ENTITY_TIMELINE = 'match/timeline'
+ENTITY_STATS = 'match/details'
 
 TEAM_SIZE = 10
 
@@ -16,19 +17,6 @@ PROCESS_EVENTS = {
     'BUILDING_KILL',
 }
 
-RELEVANT_COLUMNS = (
-    'team_id',
-    'totalGold',
-    'jungleMinionsKilled',
-    'minionsKilled',
-    'xp',
-    'level',
-    'totalDamageDone',
-    'totalDamageDoneToChampions',
-    'totalDamageTaken',
-)
-
-# @task
 def process_frames(timeline):
     parsed_events = []
     for frame in timeline['info']['frames']:
@@ -68,45 +56,58 @@ def process_frames(timeline):
 
     return parsed_events
 
+RELEVANT_COLUMNS = (
+    'team_id',
+    'totalGold',
+    'jungleMinionsKilled',
+    'minionsKilled',
+    'xp',
+    'level',
+    'totalDamageDone',
+    'totalDamageDoneToChampions',
+    'totalDamageTaken',
+)
+
+RELEVANT_DAMAGE_FIELDS = (
+    'totalDamageDone',
+    'totalDamageDoneToChampions',
+    'totalDamageTaken',
+)
+
 def extract_player_match_data(match, maxFrame=15):
     df = pd.DataFrame.from_dict(match['info']['frames'][maxFrame]['participantFrames'], orient='index')
-    RELEVANT_DAMAGE_FIELDS = (
-        'totalDamageDone',
-        'totalDamageDoneToChampions',
-        'totalDamageTaken',
-    )
 
-    # Apply the function and expand the result into new columns
     for field in RELEVANT_DAMAGE_FIELDS:
         df[field] = df['damageStats'].apply(lambda x: x.get(field, None))
-    #df = df.drop(columns=['damageStats']).reset_index().join(pd.json_normalize(df['damageStats'])).set_index('index')
-    #df = df.join(pd.json_normalize(df['damageStats']))
+
     df['team_id'] = [100 if (TEAM_SIZE / 2) >= int(idx) else 200 for idx in df.index]
 
     return df[[*RELEVANT_COLUMNS]]
 
 
 @flow
-def process_match_timeline(match_id):
-    data_path = Variable.get('data_path')
+async def process_match_timeline(match_id, frame):
+    data_path = await Variable.get('data_path')
     data_path = data_path.value
-    bronze_path = f'{data_path}/{BRONZE}/{ENTITY}/{match_id}.json'
-    silver_path = f'{data_path}/{SILVER}/{ENTITY}/{match_id}.parquet'
+    bronze_path = f'{data_path}/{BRONZE}/{ENTITY_TIMELINE}/{match_id}.json'
+    silver_timeline_path = f'{data_path}/{SILVER}/{ENTITY_TIMELINE}/{match_id}.parquet'
+    silver_stats_path = f'{data_path}/{SILVER}/{ENTITY_STATS}/{match_id}.parquet'
 
     with open(bronze_path) as f:
         timeline = json.load(f)
 
     events = process_frames(timeline)
-    player_stats = extract_player_match_data(timeline, maxFrame=15)
-
     df = pd.DataFrame(events)
     df = df.dropna(axis=0)
-    df.to_parquet(silver_path)
+    df.to_parquet(silver_timeline_path)
+
+    player_stats = extract_player_match_data(timeline, maxFrame=frame)
+    player_stats.to_parquet(silver_stats_path)
 
 
 def process_match_timeline_local(match_id):
     data_path = '../../'
-    bronze_path = f'{data_path}/{BRONZE}/{ENTITY}/{match_id}.json'
+    bronze_path = f'{data_path}/{BRONZE}/{ENTITY_TIMELINE}/{match_id}.json'
 
     with open(bronze_path) as f:
         timeline = json.load(f)
@@ -119,5 +120,5 @@ def process_match_timeline_local(match_id):
     return df, player_stats
 
 if __name__ == '__main__':
-    match_id = 'EUW1_7023586604'
-    df, player_stats = process_match_timeline_local(match_id)
+    match_id = 'EUW1_7040087248'
+    events, player_stats = process_match_timeline_local(match_id)

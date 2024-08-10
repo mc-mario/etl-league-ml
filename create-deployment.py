@@ -8,7 +8,9 @@ from flows.bronze.bronze_orchestrator import orchestrate_daily_division_retrieva
 from flows.bronze.get_match_information import get_match_information
 from flows.bronze.get_player_information import get_player_information
 from flows.bronze.list_division_players import list_division_players
+from flows.silver.process_match_details import process_match_details
 from flows.silver.process_match_timeline import process_match_timeline
+from flows.silver.silver_orchestrator import orchestrate_silver_etl
 
 github_block = GitHub.load("github")
 
@@ -79,6 +81,24 @@ def deploy_silver_etl():
         entrypoint="flows/silver/process_match_timeline.py:process_match_timeline",
     ).deploy(
         name="process_match_timeline",
+        work_pool_name="default-agent-pool",
+        work_queue_name="default",
+        tags=['silver'],
+    )
+    process_match_details.from_source(
+        source=github_block,
+        entrypoint="flows/silver/process_match_details.py:process_match_details",
+    ).deploy(
+        name="process_match_details",
+        work_pool_name="default-agent-pool",
+        work_queue_name="default",
+        tags=['silver'],
+    )
+    orchestrate_silver_etl.from_source(
+        source=github_block,
+        entrypoint="flows/silver/silver_orchestrator.py:orchestrate_silver_etl",
+    ).deploy(
+        name="orchestrate_silver_etl",
         work_pool_name="default-agent-pool",
         work_queue_name="default",
         tags=['silver'],

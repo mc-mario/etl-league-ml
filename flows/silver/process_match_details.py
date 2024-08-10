@@ -9,18 +9,17 @@ BRONZE = 'bronze'
 SILVER = 'silver'
 ENTITY = 'match/details'
 
-COLUMNS_TO_STUDY = {
+METADATA_COLUMNS = {
     'gameDuration',
     'gameMode',
     'gameVersion',
     'gameCreation',
-    'participants'
+    'gameType'
 }
 
 PARTICIPANTS_COLUMNS = {
     'championName',
-    'lane',
-    'role',
+    'teamPosition',
 }
 
 def process_metadata(details_path):
@@ -28,27 +27,28 @@ def process_metadata(details_path):
         details = json.load(f)
         info = details['info']
 
-    for k, v in info.items():
-        if k not in COLUMNS_TO_STUDY:
-            continue
+    data = {k:v for k, v in info.items() if k in METADATA_COLUMNS}
 
-        if k == 'particpants':
-            print(k)
-            #for p in v:
-            #    pprint(p)
+    for idx, participant in enumerate(info['participants'], 1):
+        data[idx] = [participant[col] for col in PARTICIPANTS_COLUMNS] + [details['metadata']['participants'][idx-1]]
 
-
-    return info
+    return data
 
 
 @flow
-def process_match_details(match_id):
-    data_path = Variable.get('data_path')
+async def process_match_details(match_id):
+    data_path = await Variable.get('data_path')
     data_path = data_path.value
     bronze_path = f'{data_path}/{BRONZE}/{ENTITY}/{match_id}.json'
     silver_path = f'{data_path}/{SILVER}/{ENTITY}/{match_id}.parquet'
 
     metadata = process_metadata(bronze_path)
+
+    if metadata.get('gameMode') != 'CLASSIC' or metadata.get('gameType') != 'RANKED':
+        return False
+
+    return True
+
 
 def process_match_details_local(match_id):
     data_path = '../..'
@@ -63,5 +63,5 @@ def process_match_details_local(match_id):
 
 
 if __name__ == '__main__':
-    match_id = 'EUW1_7023586604'
+    match_id = 'EUW1_7040087248'
     df = process_match_details_local(match_id)
