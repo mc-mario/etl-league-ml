@@ -46,7 +46,7 @@ def get_match_id(session, filters=None):
         filters = {'bronze': False}
     elem = (
         session.query(Match)
-            .filter_by(Match.match_id.like('EUW1_%'), is_deleted=False, **filters)
+            .filter(Match.match_id.like('EUW1_%'), is_deleted=False, **filters)
             .order_by(Match.match_id.desc())
             .first()
     )
