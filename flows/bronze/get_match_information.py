@@ -1,8 +1,10 @@
 import json
 
-from prefect import task, flow
+from prefect import task, flow, get_run_logger
 from prefect.variables import Variable
 from pulsefire.clients import RiotAPIClient
+
+from flows.utils.db import complete_step, db_create_session
 
 
 @task
@@ -19,13 +21,21 @@ async def get_match(match_id, client_kwargs):
 
 @flow
 async def get_match_information(match_id):
+    logger = get_run_logger()
     API_KEY = await Variable.get('riot_api_key')
 
     client_kwargs = dict(
         default_headers={"X-Riot-Token": API_KEY.value}
     )
-    timeline = await get_match_timeline(match_id, client_kwargs)
     details = await get_match(match_id, client_kwargs)
+
+    session = await db_create_session()
+    if details['info'].get('gameMode') != 'CLASSIC' or details['info'].get('gameType') != 'RANKED':
+        complete_step(session, match_id, 'is_deleted', True)
+        logger.info(f'{match_id} is marked as deleted because its gametype is: {details["info"]["gameType"]} - {details["info"]["gameMode"]}')
+        return
+
+    timeline = await get_match_timeline(match_id, client_kwargs)
 
     data_path = await Variable.get('data_path')
     path = data_path.value

@@ -27,6 +27,7 @@ class Match(Base):
     silver = Column(Boolean, default=False)
     gold = Column(Boolean, default=False)
     created_on = Column(DateTime, default=func.now())
+    is_deleted = Column(Boolean, default=False)
 
 
 def is_match_id_processed(session, match_id):
@@ -40,8 +41,10 @@ def add_match_id(session, match_id, bronze=False, silver=False, gold=False):
     session.add(new_match)
     session.commit()
 
-def get_match_id(session, filters={'bronze': False}):
-    elem = session.query(Match).filter_by(**filters).first()
+def get_match_id(session, filters=None):
+    if filters is None:
+        filters = {'bronze': False}
+    elem = session.query(Match).filter_by(is_deleted=False, **filters).first()
     if elem is None:
         return None
 

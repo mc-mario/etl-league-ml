@@ -1,4 +1,4 @@
-from prefect import flow, get_client
+from prefect import flow, get_client, get_run_logger
 from prefect.deployments import run_deployment
 
 from flows.utils.db import get_match_id, db_create_session, complete_step
@@ -6,6 +6,7 @@ from flows.utils.db import get_match_id, db_create_session, complete_step
 
 @flow
 async def orchestrate_silver_etl(match_id=None, frame=15):
+    logger = get_run_logger()
     session = await db_create_session()
 
     if match_id is None:
@@ -20,10 +21,10 @@ async def orchestrate_silver_etl(match_id=None, frame=15):
         process_match_details.id,
         parameters={'match_id': match_id}
     )
-    print(is_processable)
 
     if not is_processable:
-        complete_step(session, match_id, 'silver', True)
+        logger.info(f'{match_id} is not processable, marking as deleted')
+        complete_step(session, match_id, 'is_deleted', True)
         return
 
     process_match_timeline = await get_client().read_deployment_by_name(
