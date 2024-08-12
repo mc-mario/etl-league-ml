@@ -63,6 +63,7 @@ prefect==2.19.9
 prefect-github==0.2.6
 pulsefire==2.0.12
 pulsefire-types==2.0.12
+pyarrow==17.0.0
 pyasn1==0.6.0
 pyasn1_modules==0.4.0
 pycparser==2.22
