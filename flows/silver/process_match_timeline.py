@@ -99,10 +99,10 @@ async def process_match_timeline(match_id, frame):
     events = process_frames(timeline)
     df = pd.DataFrame(events)
     df = df.dropna(axis=0)
+    df['objective'] = df['objective'].apply(lambda x: str(x)) # Issue: https://github.com/mage-ai/mage-ai/pull/4857
     df.to_parquet(silver_timeline_path)
 
     player_stats = extract_player_match_data(timeline, maxFrame=frame)
-    player_stats['objective'] = player_stats['objective'].astype(str) # Issue: https://github.com/mage-ai/mage-ai/pull/4857
     player_stats.to_parquet(silver_stats_path)
 
 
