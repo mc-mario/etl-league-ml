@@ -102,6 +102,7 @@ async def process_match_timeline(match_id, frame):
     df.to_parquet(silver_timeline_path)
 
     player_stats = extract_player_match_data(timeline, maxFrame=frame)
+    player_stats['objective'] = player_stats['objective'].astype(str) # Issue: https://github.com/mage-ai/mage-ai/pull/4857
     player_stats.to_parquet(silver_stats_path)
 
 
