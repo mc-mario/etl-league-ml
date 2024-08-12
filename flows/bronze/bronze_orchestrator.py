@@ -2,7 +2,7 @@ import json
 import os
 from datetime import date
 
-from prefect import get_client, flow, task
+from prefect import get_client, flow, task, get_run_logger
 from prefect.deployments import run_deployment
 from prefect.variables import Variable
 
@@ -32,10 +32,12 @@ async def update_bronze_etl_database():
 
 @flow
 async def get_pending_match():
+    logger = get_run_logger()
+    logger.info('Get Pending Match start')
+
     session = await db_create_session()
     match_id = get_match_id(session)
-
-    print('Match ID', match_id)
+    logger.info(f'Grabbed match_id {match_id}')
 
     if match_id is None:
         return
