@@ -30,9 +30,9 @@ async def get_match_information(match_id):
     details = await get_match(match_id, client_kwargs)
 
     session = await db_create_session()
-    if details['info'].get('gameMode') != 'CLASSIC' or details['info'].get('gameType') != 'RANKED':
+    if details['info'].get('gameMode') != 'CLASSIC' or details['info'].get('gameType') != 'MATCHED_GAME':
         complete_step(session, match_id, 'is_deleted', True)
-        logger.info(f'{match_id} is marked as deleted because its gametype is: {details["info"]["gameType"]} - {details["info"]["gameMode"]}')
+        logger.info(f'{match_id} is marked as deleted because its gametype is: {details["info"]["gameMode"]} - {details["info"]["gameType"]} ')
         return
 
     timeline = await get_match_timeline(match_id, client_kwargs)

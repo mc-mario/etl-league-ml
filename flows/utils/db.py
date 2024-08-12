@@ -44,7 +44,12 @@ def add_match_id(session, match_id, bronze=False, silver=False, gold=False):
 def get_match_id(session, filters=None):
     if filters is None:
         filters = {'bronze': False}
-    elem = session.query(Match).filter_by(is_deleted=False, **filters).first()
+    elem = (
+        session.query(Match)
+            .filter_by(Match.match_id.like('EUW1_%'), is_deleted=False, **filters)
+            .order_by(Match.match_id.desc())
+            .first()
+    )
     if elem is None:
         return None
 
