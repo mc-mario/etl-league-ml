@@ -42,7 +42,7 @@ async def get_pending_match():
     if match_id is None:
         return
 
-    complete_step(session, match_id, 'bronze', True)
+    complete_step(session, match_id, 'is_deleted', True)
 
     get_match_information_deploy = await get_client().read_deployment_by_name(
         name='get-match-information/get_match_information'
@@ -53,6 +53,7 @@ async def get_pending_match():
         parameters={'match_id': match_id}
     )
 
+    complete_step(session, match_id, 'is_deleted', False)
     complete_step(session, match_id, 'bronze', True)
 
 
