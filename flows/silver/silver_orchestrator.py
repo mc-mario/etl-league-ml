@@ -19,11 +19,11 @@ async def orchestrate_silver_etl(match_id=None, frame=15):
     )
 
     logger.info(f'Running process-match-details')
-    run = await run_deployment(
+    run= await run_deployment(
         process_match_details.id,
         parameters={'match_id': match_id}
     )
-    logger.info(f'Result of is_processable={run.result()}')
+    logger.info(f'Result of is_processable={run.value}')
 
     if not run:
         logger.info(f'{match_id} is not processable, marking as deleted')
