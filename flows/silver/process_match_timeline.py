@@ -17,9 +17,12 @@ PROCESS_EVENTS = {
     'BUILDING_KILL',
 }
 
-def process_frames(timeline):
+def process_frames(timeline, max_frame=15):
     parsed_events = []
-    for frame in timeline['info']['frames']:
+    for idx, frame in enumerate(1, timeline['info']['frames']):
+        if idx >= max_frame:
+            break
+
         events = frame['events']
         for ev in events:
             if ev['type'] not in PROCESS_EVENTS:
@@ -74,8 +77,8 @@ RELEVANT_DAMAGE_FIELDS = (
     'totalDamageTaken',
 )
 
-def extract_player_match_data(match, maxFrame=15):
-    df = pd.DataFrame.from_dict(match['info']['frames'][maxFrame]['participantFrames'], orient='index')
+def extract_player_match_data(match, max_frame=15):
+    df = pd.DataFrame.from_dict(match['info']['frames'][max_frame]['participantFrames'], orient='index')
 
     for field in RELEVANT_DAMAGE_FIELDS:
         df[field] = df['damageStats'].apply(lambda x: x.get(field, None))
@@ -96,13 +99,15 @@ async def process_match_timeline(match_id, frame):
     with open(bronze_path) as f:
         timeline = json.load(f)
 
-    events = process_frames(timeline)
+    events = process_frames(timeline, max_frame=15)
     df = pd.DataFrame(events)
     df = df.dropna(axis=0)
     df['objective'] = df['objective'].apply(lambda x: str(x)) # Issue: https://github.com/mage-ai/mage-ai/pull/4857
+    
+    player_stats = extract_player_match_data(timeline, max_frame=15)
+    
     df.to_parquet(silver_timeline_path)
-
-    player_stats = extract_player_match_data(timeline, maxFrame=frame)
+    
     player_stats.to_parquet(silver_stats_path)
 
 
@@ -113,8 +118,8 @@ def process_match_timeline_local(match_id):
     with open(bronze_path) as f:
         timeline = json.load(f)
 
-    events = process_frames(timeline)
-    player_stats = extract_player_match_data(timeline, maxFrame=15)
+    events = process_frames(timeline, max_frame=15)
+    player_stats = extract_player_match_data(timeline, max_frame=15)
 
     df = pd.DataFrame(events)
     df = df.dropna(axis=0)

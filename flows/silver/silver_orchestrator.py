@@ -3,6 +3,8 @@ from prefect.client.schemas import FlowRun, StateType
 from prefect.deployments import run_deployment
 from prefect.states import Completed
 
+from flows.silver.process_match_details import process_match_details
+from flows.silver.process_match_timeline import process_match_timeline
 from flows.utils.db import get_match_id, db_create_session, complete_step
 
 
@@ -17,15 +19,13 @@ async def orchestrate_silver_etl(match_id=None, frame=15):
 
     logger.info(f'Grabbed {match_id}')
 
-    process_match_details = await get_client().read_deployment_by_name(
-        name='process-match-details/process_match_details'
-    )
+    run = await process_match_details(match_id=match_id)
 
     logger.info(f'Running process-match-details')
-    run: FlowRun = await run_deployment(
-        process_match_details.id,
-        parameters={'match_id': match_id}
-    )
+    #run: FlowRun = await run_deployment(
+    #    process_match_details.id,
+    #    parameters={'match_id': match_id}
+    #)
 
     logger.info(f'Result of is_processable={run.state}')
 
@@ -35,11 +35,12 @@ async def orchestrate_silver_etl(match_id=None, frame=15):
         return
 
     logger.info("Processing timeline")
-    process_match_timeline = await get_client().read_deployment_by_name(
-        name='process-match-timeline/process_match_timeline'
-    )
-    await run_deployment(
-        process_match_timeline.id,
-        parameters={'match_id': match_id, 'frame': frame}
-    )
+    #process_match_timeline = await get_client().read_deployment_by_name(
+    #    name='process-match-timeline/process_match_timeline'
+    #)
+    #await run_deployment(
+    #    process_match_timeline.id,
+    #    parameters={'match_id': match_id, 'frame': frame}
+    #)
+    run = await process_match_timeline(match_id=match_id, frame=frame)
     logger.info(f'Marking {match_id} silver step')
