@@ -50,7 +50,15 @@ async def process_match_details(match_id):
     if metadata.get('gameMode') != 'CLASSIC' or metadata.get('gameType') != 'MATCHED_GAME':
         raise Exception('Unprocessable')
 
-    df = pd.DataFrame.from_dict(metadata, orient='columns')
+    df = pd.DataFrame([metadata]).astype(
+        {'gameCreation': 'int64',
+         'gameDuration': 'int64',
+         'gameType': 'string',
+         'gameMode': 'string',
+         'gameVersion': 'string',
+         **{i: 'string' for i in range(1, 11)}
+         }
+    )
     df.to_parquet(silver_path)
     #with open(silver_path, 'w') as f:
         #json.dump(metadata, f, indent=4)
@@ -60,13 +68,26 @@ async def process_match_details(match_id):
 def process_match_details_local(match_id):
     data_path = '../..'
     bronze_path = f'{data_path}/{BRONZE}/{ENTITY}/{match_id}.json'
+    silver_path = f'{data_path}/{SILVER}/{ENTITY}/{match_id}.parquet'
 
     metadata = process_metadata(bronze_path)
+    if metadata.get('gameMode') != 'CLASSIC' or metadata.get('gameType') != 'MATCHED_GAME':
+        raise Exception('Unprocessable')
 
+    df = pd.DataFrame([metadata]).astype(
+        {'gameCreation': 'int64',
+         'gameDuration': 'int64',
+         'gameType': 'string',
+         'gameMode': 'string',
+         'gameVersion': 'string',
+         **{i: 'string' for i in range(1, 11)}
+         }
+    )
+    #df.to_parquet(silver_path)
     #df = pd.DataFrame(details)
     #df = df.dropna(axis=0)
 
-    return metadata
+    return df
 
 
 if __name__ == '__main__':
