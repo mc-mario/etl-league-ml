@@ -42,6 +42,8 @@ async def get_pending_match():
     if match_id is None:
         return
 
+    complete_step(session, match_id, 'bronze', True)
+
     get_match_information_deploy = await get_client().read_deployment_by_name(
         name='get-match-information/get_match_information'
     )

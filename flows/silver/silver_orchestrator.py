@@ -1,6 +1,7 @@
 from prefect import flow, get_client, get_run_logger
-from prefect.client.schemas import FlowRun
+from prefect.client.schemas import FlowRun, StateType
 from prefect.deployments import run_deployment
+from prefect.states import Completed
 
 from flows.utils.db import get_match_id, db_create_session, complete_step
 
@@ -12,6 +13,7 @@ async def orchestrate_silver_etl(match_id=None, frame=15):
 
     if match_id is None:
         match_id = get_match_id(session, {'bronze': True, 'silver': False})
+        complete_step(session, match_id, 'silver', True)
 
     logger.info(f'Grabbed {match_id}')
 
@@ -24,9 +26,10 @@ async def orchestrate_silver_etl(match_id=None, frame=15):
         process_match_details.id,
         parameters={'match_id': match_id}
     )
-    #logger.info(f'Result of is_processable={await run.state.result()}')
 
-    if not True:
+    logger.info(f'Result of is_processable={run.state}')
+
+    if run.state == StateType.FAILED:
         logger.info(f'{match_id} is not processable, marking as deleted')
         complete_step(session, match_id, 'is_deleted', True)
         return
@@ -40,4 +43,3 @@ async def orchestrate_silver_etl(match_id=None, frame=15):
         parameters={'match_id': match_id, 'frame': frame}
     )
     logger.info(f'Marking {match_id} silver step')
-    complete_step(session, match_id, 'silver', True)

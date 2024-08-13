@@ -47,7 +47,7 @@ async def process_match_details(match_id):
     metadata = process_metadata(bronze_path)
 
     if metadata.get('gameMode') != 'CLASSIC' or metadata.get('gameType') != 'MATCHED_GAME':
-        return False
+        raise Exception('Unprocessable')
 
     with open(silver_path, 'w') as f:
         json.dump(metadata, f, indent=4)
