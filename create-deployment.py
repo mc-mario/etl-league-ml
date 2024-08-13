@@ -102,6 +102,7 @@ def deploy_silver_etl():
         work_pool_name="default-agent-pool",
         work_queue_name="default",
         tags=['silver'],
+        schedule=IntervalSchedule(interval=timedelta(seconds=10), timezone="Europe/Madrid"),
     )
 
 if __name__ == "__main__":
