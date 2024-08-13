@@ -32,7 +32,7 @@ def process_metadata(details_path):
     for idx, participant in enumerate(info['participants'], 1):
         data[idx] = [participant[col] for col in PARTICIPANTS_COLUMNS] + [details['metadata']['participants'][idx-1]]
 
-    data[info['teams'][0]['teamId']+'_winner'] = info['teams'][0]['win']
+    data[f"{info['teams'][0]['teamId']}_winner"] = info['teams'][0]['win']
 
     return data
 
