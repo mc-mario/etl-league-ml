@@ -32,6 +32,8 @@ def process_metadata(details_path):
     for idx, participant in enumerate(info['participants'], 1):
         data[idx] = [participant[col] for col in PARTICIPANTS_COLUMNS] + [details['metadata']['participants'][idx-1]]
 
+    data[info['teams'][0]['teamId']+'_winner'] = info['teams'][0]['win']
+
     return data
 
 
@@ -40,11 +42,11 @@ async def process_match_details(match_id):
     data_path = await Variable.get('data_path')
     data_path = data_path.value
     bronze_path = f'{data_path}/{BRONZE}/{ENTITY}/{match_id}.json'
-    silver_path = f'{data_path}/{SILVER}/{ENTITY}/{match_id}.parquet'
+    silver_path = f'{data_path}/{SILVER}/{ENTITY}/{match_id}.json'
 
     metadata = process_metadata(bronze_path)
 
-    if metadata.get('gameMode') != 'CLASSIC' or metadata.get('gameType') != 'RANKED':
+    if metadata['info'].get('gameMode') != 'CLASSIC' or metadata['info'].get('gameType') != 'MATCHED_GAME':
         return False
 
     with open(silver_path) as f:
