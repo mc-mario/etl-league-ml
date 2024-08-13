@@ -46,7 +46,7 @@ async def process_match_details(match_id):
 
     metadata = process_metadata(bronze_path)
 
-    if metadata['info'].get('gameMode') != 'CLASSIC' or metadata['info'].get('gameType') != 'MATCHED_GAME':
+    if metadata.get('gameMode') != 'CLASSIC' or metadata.get('gameType') != 'MATCHED_GAME':
         return False
 
     with open(silver_path) as f:
