@@ -19,7 +19,7 @@ PROCESS_EVENTS = {
 
 def process_frames(timeline, max_frame=15):
     parsed_events = []
-    for idx, frame in enumerate(1, timeline['info']['frames']):
+    for idx, frame in enumerate(timeline['info']['frames'], 1):
         if idx >= max_frame:
             break
 
