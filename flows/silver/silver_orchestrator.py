@@ -19,7 +19,7 @@ async def orchestrate_silver_etl(match_id=None, frame=15):
 
     logger.info(f'Grabbed {match_id}')
 
-    run = await process_match_details(match_id=match_id)
+    success = await process_match_details(match_id=match_id)
 
     logger.info(f'Running process-match-details')
     #run: FlowRun = await run_deployment(
@@ -29,7 +29,7 @@ async def orchestrate_silver_etl(match_id=None, frame=15):
 
     logger.info(f'Result of is_processable={run}')
 
-    if run:
+    if not success:
         logger.info(f'{match_id} is not processable, marking as deleted')
         complete_step(session, match_id, 'is_deleted', True)
         return
@@ -42,5 +42,5 @@ async def orchestrate_silver_etl(match_id=None, frame=15):
     #    process_match_timeline.id,
     #    parameters={'match_id': match_id, 'frame': frame}
     #)
-    run = await process_match_timeline(match_id=match_id, frame=frame)
+    success = await process_match_timeline(match_id=match_id, frame=frame)
     logger.info(f'Marking {match_id} silver step')
