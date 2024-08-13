@@ -48,7 +48,7 @@ async def process_match_details(match_id):
     metadata = process_metadata(bronze_path)
 
     if metadata.get('gameMode') != 'CLASSIC' or metadata.get('gameType') != 'MATCHED_GAME':
-        raise Exception('Unprocessable')
+        return False
 
     df = pd.DataFrame([metadata]).astype(
         {'gameCreation': 'int64',
