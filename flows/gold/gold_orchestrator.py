@@ -28,10 +28,15 @@ async def orchestrate_gold_etl(match_id=None):
     logger.info(f'Consolidating {match_id}')
 
     all_data_available = all(
-        os.path.isfile(f"{data_path}/{entity}/{match_id}.parquet")
+        os.path.isfile(f"{data_path}/{SILVER}/{entity}/{match_id}.parquet")
             for entity in {ENTITY_DETAILS, ENTITY_TIMELINE, ENTITY_STATS}
     )
-    print(all_data_available)
+    if not all_data_available:
+        complete_step(session, match_id, 'is_deleted', True)
+        logger.info(f'Missing some data points, marking {match_id} as deleted')
+        return
+
+    
 
 
 if __name__ == '__main__':
