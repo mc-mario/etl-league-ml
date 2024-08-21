@@ -19,7 +19,6 @@ async def orchestrate_gold_etl(match_id=None):
     session = await db_create_session()
     data_path = await Variable.get('data_path')
     data_path = data_path.value
-    data_path = '.'
 
     if match_id is None:
         match_id = get_match_id(session, {'bronze': True, 'silver': True, 'gold': False})
@@ -35,8 +34,6 @@ async def orchestrate_gold_etl(match_id=None):
         complete_step(session, match_id, 'is_deleted', True)
         logger.info(f'Missing some data points, marking {match_id} as deleted')
         return
-
-    
 
 
 if __name__ == '__main__':
