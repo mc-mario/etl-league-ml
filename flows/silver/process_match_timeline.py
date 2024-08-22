@@ -24,6 +24,7 @@ def process_frames(timeline, max_frame=15):
             break
 
         events = frame['events']
+
         for ev in events:
             if ev['type'] not in PROCESS_EVENTS:
                 continue

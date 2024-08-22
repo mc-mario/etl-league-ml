@@ -100,6 +100,6 @@ async def list_division_today():
     )
     for division in ['I', 'II', 'III', 'IV']:
         parameters = dict(
-            tier='DIAMOND', division=division, queue='RANKED_SOLO_5x5'
+            queue='RANKED_SOLO_5x5', tier='DIAMOND', division=division,
         )
         await run_deployment(list_division_players_deploy.id, parameters=parameters)

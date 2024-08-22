@@ -45,7 +45,6 @@ async def aggregate_match_data(data_path='.', match_id='EUW1_7007516257'):
         final_df[f'{team}_towers_middle_taken'] = df_timeline.query(f'type == "BUILDING_KILL" and objective == "MID_LANE TOWER_BUILDING" and team_id == {team_id}')['objective'].count()
         final_df[f'{team}_towers_bottom_taken'] = df_timeline.query(f'type == "BUILDING_KILL" and objective == "BOT_LANE TOWER_BUILDING" and team_id == {team_id}')['objective'].count()
 
-
     # Add player stats to the final dataframe
     for player_id, role in roles_by_id.items():
         team_id = 100 if player_id < 6 else 200

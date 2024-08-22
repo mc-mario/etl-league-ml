@@ -60,8 +60,6 @@ async def process_match_details(match_id):
          }
     )
     df.to_parquet(silver_path)
-    #with open(silver_path, 'w') as f:
-        #json.dump(metadata, f, indent=4)
     return True
 
 

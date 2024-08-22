@@ -21,13 +21,14 @@ Base = declarative_base()
 
 class Match(Base):
     __tablename__ = 'matches'
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    match_id = Column(String, unique=True, nullable=False)
+    match_id = Column(String, unique=True, primary_key=True, nullable=False)
+
+    created_on = Column(DateTime, default=func.now())
+    is_deleted = Column(Boolean, default=False)
+
     bronze = Column(Boolean, default=False)
     silver = Column(Boolean, default=False)
     gold = Column(Boolean, default=False)
-    created_on = Column(DateTime, default=func.now())
-    is_deleted = Column(Boolean, default=False)
 
 
 def is_match_id_processed(session, match_id):
